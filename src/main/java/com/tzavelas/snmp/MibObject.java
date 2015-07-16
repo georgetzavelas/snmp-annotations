@@ -5,7 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * A decorator to mark a field or zero-arg method in a class to be
+ * A custom annotation to mark a field or zero-arg method in a class to be
  * used as a MIB Object. The decorated field will only be read-only
  *
  * Of all the attributes defined, only type and oid is relevant for
