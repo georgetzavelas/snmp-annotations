@@ -65,7 +65,11 @@ public class AnnotatedStatsMOGroup implements MOGroup {
 
         public VariantVariableCallback createVariantCallback(Object obj,
                 Object clsMember, Logger logger) {
-            return new DynamicVariantVariableCallback(obj, (Field)clsMember, logger);
+            return new DynamicVariantVariableCallback
+                    .DynamicVariantVariableCallbackBuilder(obj)
+                    .field((Field)clsMember)
+                    .logger(logger)
+                    .build();
         }
     };
 
@@ -87,7 +91,11 @@ public class AnnotatedStatsMOGroup implements MOGroup {
 
         public VariantVariableCallback createVariantCallback(Object obj,
                 Object clsMember, Logger logger) {
-            return new DynamicVariantVariableCallback(obj, (Method)clsMember, logger);
+            return new DynamicVariantVariableCallback
+                    .DynamicVariantVariableCallbackBuilder(obj)
+                    .method((Method)clsMember)
+                    .logger(logger)
+                    .build();
         }
     };
 

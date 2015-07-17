@@ -12,57 +12,42 @@ import org.snmp4j.smi.ReadonlyVariableCallback;
 import org.snmp4j.smi.Variable;
 import org.snmp4j.smi.VariantVariable;
 
-//Intentionally protected class
+/**
+ * Callback to monitor any change in the value of the variable.
+ * Used by AnnotatedStatsMOGroup hence why its not public
+ */
 class DynamicVariantVariableCallback extends ReadonlyVariableCallback {
-    private Object _reprObj = null;
-    private Field _field = null;
-    private Method _method = null;
-    private Logger _logger = null;
+    private Object reprObj = null;
+    private Field field = null;
+    private Method method = null;
+    private Logger logger = null;
 
-    private DynamicVariantVariableCallback(Object obj, Field field, Method method, Logger logger){
-        _reprObj = obj;
-        _field = field;
-        _method = method;
-        _logger = logger;
+    private DynamicVariantVariableCallback(DynamicVariantVariableCallbackBuilder builder) {
+        reprObj = builder.obj;
+        field = builder.field;
+        method = builder.method;
+        logger = builder.logger;
     }
 
-    public DynamicVariantVariableCallback(Object obj, Field field){
-        this(obj, field, null, null);
-    }
-
-    public DynamicVariantVariableCallback(Object obj, Field field, Logger logger){
-        this(obj, field, null, logger);
-    }
-
-    public DynamicVariantVariableCallback(Object obj, Method method){
-        this(obj, null, method, null);
-    }
-
-    public DynamicVariantVariableCallback(Object obj, Method method, Logger logger){
-        this(obj, null, method, logger);
-    }
-
-    private Object getObjCurrentValue()
-            throws IllegalArgumentException,
-            IllegalAccessException,
-            InvocationTargetException{
+    private Object getObjCurrentValue() throws IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException {
         Object ret = null;
 
-        if(_field != null){
-            boolean accessible = _field.isAccessible();
-            try{
-                _field.setAccessible(true);
-                ret = _field.get(_reprObj);
-            }finally{
-                _field.setAccessible(accessible);
+        if (field != null) {
+            boolean accessible = field.isAccessible();
+            try {
+                field.setAccessible(true);
+                ret = field.get(reprObj);
+            } finally {
+                field.setAccessible(accessible);
             }
-        }else{
-            boolean accessible = _method.isAccessible();
-            try{
-                _method.setAccessible(true);
-                ret = _method.invoke(_reprObj);
-            }finally{
-                _method.setAccessible(accessible);
+        } else {
+            boolean accessible = method.isAccessible();
+            try {
+                method.setAccessible(true);
+                ret = method.invoke(reprObj);
+            } finally {
+                method.setAccessible(accessible);
             }
         }
 
@@ -74,31 +59,59 @@ class DynamicVariantVariableCallback extends ReadonlyVariableCallback {
         Variable inVar = variable.getVariable();
         try {
             Object val = getObjCurrentValue();
-            if( inVar instanceof AssignableFromInteger ){
+            if (inVar instanceof AssignableFromInteger) {
                 AssignableFromInteger convVar = (AssignableFromInteger)inVar;
                 Number number = (Number)val;
-                convVar.setValue( number.intValue() );
-
-            }else if( inVar instanceof AssignableFromLong ){
+                convVar.setValue(number.intValue());
+            } else if (inVar instanceof AssignableFromLong) {
                 AssignableFromLong convVar = (AssignableFromLong)inVar;
                 Number number = (Number)val;
                 convVar.setValue( number.longValue() );
-
-            }else if( inVar instanceof AssignableFromString ){
+            } else if(inVar instanceof AssignableFromString){
                 AssignableFromString convVar = (AssignableFromString)inVar;
                 convVar.setValue( val.toString() );
-
-            }else{
+            } else {
                 //No update on variable if there is no matching type.
             }
-        } catch (IllegalArgumentException | IllegalAccessException
-                | InvocationTargetException e) {
-            if(_logger != null){
-                _logger.info(String.format( "Encountered Exception: %s", e));
-                _logger.info(e.getMessage());
-            }else{
+        } catch (IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+            if (logger != null) {
+                logger.info(String.format("Encountered Exception: %s", e));
+                logger.info(e.getMessage());
+            } else {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public static class DynamicVariantVariableCallbackBuilder {
+        // required parameters
+        private final Object obj;
+        // other parameters
+        private Field field;
+        private Method method;
+        private Logger logger;
+
+        public DynamicVariantVariableCallbackBuilder(Object obj) {
+            this.obj = obj;
+        }
+
+        public DynamicVariantVariableCallbackBuilder field(Field field) {
+            this.field = field;
+            return this;
+        }
+
+        public DynamicVariantVariableCallbackBuilder method(Method method) {
+            this.method = method;
+            return this;
+        }
+
+        public DynamicVariantVariableCallbackBuilder logger(Logger logger) {
+            this.logger = logger;
+            return this;
+        }
+
+        public DynamicVariantVariableCallback build() {
+            return new DynamicVariantVariableCallback(this);
         }
     }
 }
