@@ -12,14 +12,14 @@ import org.snmp4j.smi.OctetString;
  *  snmpget -v 2c -c public localhost:2001 1.3.6.1.4.1.29506.1.0
  *
  */
-public class SimpleVanillaSnmpServer {
+public class SimpleSnmpServer {
     public static void main(String[] args) throws IOException{
-        VanillaSNMPAgent agent = new VanillaSNMPAgent("0.0.0.0/2001");
+        SimpleSNMPAgent agent = new SimpleSNMPAgent("0.0.0.0/2001");
         agent.start();
 
         OID oid = new OID("1.3.6.1.4.1.29506.1.0");
         MOScalar testString = new MOScalar(oid, MOAccessImpl.ACCESS_READ_ONLY,
-                new OctetString("Test String for SimpleVanillaSnmpServer"));
+                new OctetString("Test String for SimpleSnmpServer"));
         agent.registerManagedObject(testString);
 
         try{

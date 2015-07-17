@@ -29,12 +29,13 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.Variable;
 import org.snmp4j.transport.TransportMappings;
+
 /**
  * A very simple minimalistic SNMP Agent
  *
  * @source: http://www.jayway.com/2010/05/21/introduction-to-snmp4j/
  */
-public class VanillaSNMPAgent extends BaseAgent {
+public class SimpleSNMPAgent extends BaseAgent {
     private String address;
 
     /**
@@ -43,8 +44,8 @@ public class VanillaSNMPAgent extends BaseAgent {
      * @param address: should match format IP/Port. e.g. 0.0.0.0/2001
      * @throws IOException
      */
-    public VanillaSNMPAgent(String address) throws IOException {
-        // These files does not exist and are not used but has to be specified
+    public SimpleSNMPAgent(String address) throws IOException {
+        // These files do not exist and are not used but have to be specified
         // Read snmp4j docs for more info
         super(new File("conf.agent"), new File("bootCounter.agent"),
                 new CommandProcessor(
@@ -52,7 +53,7 @@ public class VanillaSNMPAgent extends BaseAgent {
         this.address = address;
     }
 
-    public VanillaSNMPAgent(String host, int port) throws IOException {
+    public SimpleSNMPAgent(String host, int port) throws IOException {
         this(host+"/"+port);
     }
 

@@ -18,21 +18,22 @@ import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
 
 /**
- * http://www.jayway.com/2010/05/21/introduction-to-snmp4j/
+ * A very simple minimalistic SNMP Client.
  *
+ * @source: http://www.jayway.com/2010/05/21/introduction-to-snmp4j/
  */
-public class VanillaSNMPClient {
+public class SimpleSNMPClient {
     private String address = null;
     private Snmp snmp = null;
     private CommunityTarget target = null;
     private TransportMapping transport = null;
 
-    public VanillaSNMPClient(String address) {
+    public SimpleSNMPClient(String address) {
         this(address, "public", SnmpConstants.version2c);
     }
 
-    public VanillaSNMPClient(String address,
-            String community, int snmpVersion){
+    public SimpleSNMPClient(String address,
+                            String community, int snmpVersion){
         this.address = address;
 
         Address targetAddress = GenericAddress.parse(address);

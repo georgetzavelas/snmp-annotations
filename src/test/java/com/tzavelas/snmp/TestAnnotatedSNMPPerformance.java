@@ -61,7 +61,7 @@ public class TestAnnotatedSNMPPerformance {
     }
 
     private BaseAgent buildPojoAgent(String host, int port) throws Exception{
-        VanillaSNMPAgent ret = new VanillaSNMPAgent(host, port);
+        SimpleSNMPAgent ret = new SimpleSNMPAgent(host, port);
         ret.start();
         ret.registerManagedObject(moByte);
         ret.registerManagedObject(moShort);
@@ -72,7 +72,7 @@ public class TestAnnotatedSNMPPerformance {
     }
 
     private BaseAgent buildAnnotatedAgent(String host, int port) throws Exception{
-        VanillaSNMPAgent ret = new VanillaSNMPAgent(host, port);
+        SimpleSNMPAgent ret = new SimpleSNMPAgent(host, port);
         ret.start();
 
         AnnotatedStatsMOGroup moGroup = new AnnotatedStatsMOGroup();
@@ -82,13 +82,13 @@ public class TestAnnotatedSNMPPerformance {
         return ret;
     }
 
-    private VanillaSNMPClient buildSNMPClient(String host, int port) throws Exception{
-        VanillaSNMPClient client = new VanillaSNMPClient(host+"/"+port);
+    private SimpleSNMPClient buildSNMPClient(String host, int port) throws Exception{
+        SimpleSNMPClient client = new SimpleSNMPClient(host+"/"+port);
         client.start();
         return client;
     }
 
-    private long getFetchDuration(VanillaSNMPClient client, OID oid, int times)throws Exception{
+    private long getFetchDuration(SimpleSNMPClient client, OID oid, int times)throws Exception{
         long startTime = System.nanoTime();
         for(int i=times;i>0;i--){
             ResponseEvent ev = client.getMibObjects(oid);
@@ -99,7 +99,7 @@ public class TestAnnotatedSNMPPerformance {
 
     private long[] getFetchDurations( String host, int port, OID[] oids, int times ) throws Exception{
         BaseAgent agent = buildPojoAgent(host, port);
-        VanillaSNMPClient client = buildSNMPClient(host, port);
+        SimpleSNMPClient client = buildSNMPClient(host, port);
 
         long[] ret = new long[oids.length];
         int idx = 0;
@@ -138,14 +138,20 @@ public class TestAnnotatedSNMPPerformance {
                 MOAccessImpl.ACCESS_READ_ONLY,
                 new VariantVariable(
                         new Integer32(0),
-                        new DynamicVariantVariableCallback(this, this.getClass().getDeclaredField("privIntVal") )));
+                        new DynamicVariantVariableCallback
+                                .DynamicVariantVariableCallbackBuilder(this)
+                                .field(this.getClass().getDeclaredField("privIntVal"))
+                                .build()));
 
         MOScalar annotatedIntMethod = new MOScalar(
                 intOID,
                 MOAccessImpl.ACCESS_READ_ONLY,
                 new VariantVariable(
                         new Integer32(0),
-                        new DynamicVariantVariableCallback(this, this.getClass().getDeclaredMethod("getIntMethod")) ) );
+                        new DynamicVariantVariableCallback
+                                .DynamicVariantVariableCallbackBuilder(this)
+                                .method(this.getClass().getDeclaredMethod("getIntMethod"))
+                                .build()));
 
         long duration[] = new long[3];
         int idx = 0;

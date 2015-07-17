@@ -125,14 +125,13 @@ class SampleTestStats{
 }
 
 public class TestAnnotatedSNMPServer {
-    private static VanillaSNMPClient client = null;
-    private static VanillaSNMPAgent agent = null;
+    private static SimpleSNMPClient client = null;
+    private static SimpleSNMPAgent agent = null;
     private static SampleTestStats statsObj = null;
     private static AnnotatedStatsMOGroup moGroup = null;
 
     private static int testPort = 2001;
     private static String testIP = "127.0.0.1";
-    //private static
 
     @BeforeClass
     public static void setupClass() throws IOException, DuplicateRegistrationException{
@@ -142,12 +141,12 @@ public class TestAnnotatedSNMPServer {
         moGroup = new AnnotatedStatsMOGroup();
         moGroup.addAnnotatedMibObject(statsObj);
 
-        agent = new VanillaSNMPAgent(address);
+        agent = new SimpleSNMPAgent(address);
         agent.start();
 
         moGroup.registerMOs(agent.getServer(), null);
 
-        client = new VanillaSNMPClient(address);
+        client = new SimpleSNMPClient(address);
         client.start();
     }
 
