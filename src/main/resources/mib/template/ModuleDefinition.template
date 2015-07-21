@@ -1,0 +1,55 @@
+<#import "MibUtils.template" as mibutil>
+
+${module_definition_name} DEFINITIONS ::= BEGIN
+
+IMPORTS
+    tcsAgentModules
+        FROM TELEPIN-TCS-AGENT-REG
+    DisplayString,
+    RowStatus,
+    StorageType,
+    TimeStamp
+        FROM SNMPv2-TC
+    SnmpAdminString
+        FROM SNMP-FRAMEWORK-MIB
+    Integer32,
+    Unsigned32,
+    TimeTicks,
+    OBJECT-TYPE,
+    MODULE-IDENTITY
+        FROM SNMPv2-SMI;
+
+-- Module Description
+-- 
+<@mibutil.ModuleIdentity 
+    name="${module_name}"
+    tsLastUpdated="${module_ts_updated}"
+    orgName="${module_org_name}" 
+    contactInfo="${module_contact_info}" 
+    description="${module_description}" 
+    tsRevision="${module_ts_revision}"
+    oid="${module_oid}"
+    comment="${module_comment}"
+/> 
+
+
+-- Objects definition
+--
+<#list obj_defs as obj_def>    
+    <@mibutil.MibObject  
+        name="${obj_def.name}" 
+        type="${obj_def.type}" 
+        access="${obj_def.access}"
+        status="${obj_def.status}" 
+        description="${obj_def.description}" 
+        oid="${obj_def.oid}"
+        comment="${obj_def.comment}"
+    />
+    
+</#list>
+
+
+-- Groups
+--
+
+END

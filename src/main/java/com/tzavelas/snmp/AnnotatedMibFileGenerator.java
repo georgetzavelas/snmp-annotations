@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.snmp4j.smi.Variable;
 import org.snmp4j.smi.VariantVariableCallback;
 
 import com.google.common.collect.ImmutableMap;
@@ -47,18 +46,22 @@ public class AnnotatedMibFileGenerator {
      * Accessor that is aware of fields that have been annotated with @MibObject
      */
     private static MemberSubAccessor FieldSubAccessor = new MemberSubAccessor() {
+        @Override
         public Class<?> getValueType(Object obj) {
             return ((Field)obj).getType();
         }
 
+        @Override
         public MibObject getMibObjectAnnotation(Object obj) {
             return ((Field)obj).getAnnotation(MibObject.class);
         }
 
+        @Override
         public boolean isSynthetic(Object obj) {
             return ((Field)obj).isSynthetic();
         }
 
+        @Override
         public VariantVariableCallback createVariantCallback(Object obj,
                                                              Object clsMember, Logger logger) {
             return new DynamicVariantVariableCallback
@@ -73,18 +76,22 @@ public class AnnotatedMibFileGenerator {
      * Accessor that is aware of methods that have been annotated with @MibObject
      */
     public static MemberSubAccessor MethodSubAccessor = new MemberSubAccessor() {
+        @Override
         public Class<?> getValueType(Object obj) {
             return ((Method)obj).getReturnType();
         }
 
+        @Override
         public MibObject getMibObjectAnnotation(Object obj) {
             return ((Method)obj).getAnnotation(MibObject.class);
         }
 
+        @Override
         public boolean isSynthetic(Object obj) {
             return ((Method)obj).isSynthetic();
         }
 
+        @Override
         public VariantVariableCallback createVariantCallback(Object obj,
                                                              Object clsMember, Logger logger) {
             return new DynamicVariantVariableCallback
@@ -138,9 +145,9 @@ public class AnnotatedMibFileGenerator {
      * @param templateLocation
      * @throws IOException
      */
-    public AnnotatedMibFileGenerator(String templateLocation) throws IOException {
+    public AnnotatedMibFileGenerator(File templateLocation) throws IOException {
         cfg = new Configuration(Configuration.VERSION_2_3_21);
-        cfg.setDirectoryForTemplateLoading(new File(templateLocation));
+        cfg.setDirectoryForTemplateLoading(templateLocation);
         cfg.setDefaultEncoding("UTF-8");
         cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     }
@@ -263,7 +270,8 @@ public class AnnotatedMibFileGenerator {
             inpClasses[i] = Class.forName(argv[i]);
         }
 
-        AnnotatedMibFileGenerator generator = new AnnotatedMibFileGenerator("./conf/mib/template");
+        AnnotatedMibFileGenerator generator = new AnnotatedMibFileGenerator(
+                new File(AnnotatedMibFileGenerator.class.getResource("/main//resources/mib/template").toURI()));
         generator.processIntoMibDefinition(System.out, inpClasses);
     }
 
