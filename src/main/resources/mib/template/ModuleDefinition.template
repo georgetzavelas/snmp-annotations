@@ -32,6 +32,15 @@ IMPORTS
     comment="${module_comment}"
 /> 
 
+-- Object Identifier
+--
+<#list obj_idents as obj_ident>
+    <@mibutil.ObjectIdentifier
+        name="${obj_ident.name}"
+        moduleName="${obj_ident.moduleName}"
+        oid="${obj_ident.oid}"
+    />
+</#list>
 
 -- Objects definition
 --
@@ -44,6 +53,7 @@ IMPORTS
         description="${obj_def.description}" 
         oid="${obj_def.oid}"
         comment="${obj_def.comment}"
+        objectIdentifier="${obj_def.objectIdentifier}"
     />
     
 </#list>

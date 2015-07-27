@@ -1,6 +1,6 @@
 <#-- Macro definition for different SNMP MIB Components -->
 
-<#macro MibObject  name type access status description oid comment> 
+<#macro MibObject  name type access status description oid comment objectIdentifier>
 ${name} OBJECT-TYPE
         SYNTAX  ${type}
         MAX-ACCESS ${access}
@@ -8,7 +8,7 @@ ${name} OBJECT-TYPE
         DESCRIPTION
                 "${description}"
         -- ${comment}
-        ::= { ${oid} }
+        ::= { ${objectIdentifier} ${oid} }
 
 </#macro>
 
@@ -36,8 +36,6 @@ ${name} MODULE-IDENTITY
     DESCRIPTION
         "${description}"
     REVISION "${tsRevision}"
-    DESCRIPTION
-        "${description}"
     -- ${comment}
     ::= { ${oid} }
 </#macro>
@@ -49,5 +47,11 @@ ${name} OBJECT-IDENTITY
         "${description}"
     -- ${comment}
     ::= { ${oid} }
+
+</#macro>
+
+<#macro ObjectIdentifier name moduleName oid>
+${name} OBJECT IDENTIFIER
+    ::= { ${moduleName} ${oid} }
 
 </#macro>

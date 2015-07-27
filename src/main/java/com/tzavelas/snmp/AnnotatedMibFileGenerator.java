@@ -109,6 +109,7 @@ public class AnnotatedMibFileGenerator {
             .put("integer32", "Integer32")
             .put("counter64", "Counter64")
             .put("octetstring", "OctetString")
+            .put("gauge32", "Gauge32")
             .put(Byte.class.getName(), "Integer32")     //class type
             .put(Short.class.getName(), "Integer32")
             .put(Integer.class.getName(), "Integer32")
@@ -168,6 +169,8 @@ public class AnnotatedMibFileGenerator {
                 ret = "OctetString";
             }
         } else if (OBJECT_CLASS_TO_MIB_CLASS_MAPPING.containsKey(typeNorm)) {
+            ret = OBJECT_CLASS_TO_MIB_CLASS_MAPPING.get(typeNorm);
+        } else {
             ret = OBJECT_CLASS_TO_MIB_CLASS_MAPPING.get(mibClass.getName());
         }
         return ret;
@@ -197,7 +200,7 @@ public class AnnotatedMibFileGenerator {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    private void processFieldsInto(Object[] members, MemberSubAccessor accessor,
+    private void processFieldsInto(Object[] members, String objectIdentifier, MemberSubAccessor accessor,
                                    List<ObjectDefinition> objectDefinitions)
             throws InstantiationException, IllegalAccessException {
 
@@ -215,11 +218,11 @@ public class AnnotatedMibFileGenerator {
             }
 
             objectDefinitions.add(new ObjectDefinition(mibAnnotation.name(), objType, "read-only", "current",
-                            mibAnnotation.description(), mibAnnotation.oid(), mibAnnotation.comment()));
+                    mibAnnotation.description(), mibAnnotation.oid(), mibAnnotation.comment(), objectIdentifier));
         }
     }
 
-    public void processIntoMibDefinition(OutputStream os, Class<?> ... inputClasses) throws Exception {
+    public void processIntoMibDefinition(OutputStream os, List<ObjectIdentifier> objectIdentifiers) throws Exception {
         Date date = new Date();
         String dateStr = dateFormat.format(date);
 
@@ -235,26 +238,24 @@ public class AnnotatedMibFileGenerator {
         data.put(MOD_CONTACT, "support@company.com");
         data.put(MOD_DESC, "N/A");
         data.put(MOD_TS_REVISION, dateStr);
-        data.put(MOD_OID, "");
+        data.put(MOD_OID, "subtree oid"); // subtree linkage
         data.put(MOD_COMMENT, "N/A");
 
         List<ObjectDefinition> objectDefinitions = new ArrayList<>();
-        for(Class<?> aCls: inputClasses){
-            //Generate mib object definition
-            processFieldsInto( aCls.getDeclaredFields(), FieldSubAccessor, objectDefinitions);
-            processFieldsInto( aCls.getDeclaredMethods(), MethodSubAccessor, objectDefinitions);
+        for (ObjectIdentifier objectIdentifier: objectIdentifiers) {
+            objectIdentifier.setModuleName((String) data.get(MOD_NAME));
+            processFieldsInto(objectIdentifier.getObjectIdentifierClass().getDeclaredFields(), objectIdentifier.getName(),
+                    FieldSubAccessor, objectDefinitions);
+            processFieldsInto(objectIdentifier.getObjectIdentifierClass().getDeclaredMethods(), objectIdentifier.getName(),
+                    MethodSubAccessor, objectDefinitions);
         }
+        data.put("obj_idents", objectIdentifiers);
         data.put("obj_defs", objectDefinitions);
 
-        /**
-         * TODOs:
-         * 1. Allow more parameters to be passed in
-         * 2. Make use of object-identity, and other decorative mib syntax
-         * 3. Remove copy and paste copy from AnnotatedStatsModule
-         */
+        // TODO: Make use of object-identity, and other decorative mib syntax?
 
         // Console output
-        Writer out = new OutputStreamWriter(System.out);
+        Writer out = new OutputStreamWriter(os);
         objTemplate.process(data, out);
         out.flush();
     }
@@ -263,16 +264,21 @@ public class AnnotatedMibFileGenerator {
         if (argv.length == 0) {
             System.out.println("No class path provided");
             return;
+        } else if (argv.length % 2 != 0) {
+            System.out.println("Either object identifier or class path is missing");
+            return;
         }
 
-        Class<?>[] inpClasses = new Class<?>[argv.length];
-        for (int i=0; i<argv.length; i++) {
-            inpClasses[i] = Class.forName(argv[i]);
+        int count = 1;
+        List<ObjectIdentifier> objectIdentifiers = new ArrayList<>();
+        for (int i = 0; i < argv.length; i+=2) {
+            objectIdentifiers.add(new ObjectIdentifier(argv[i], argv[i+1], count + ""));
+            count++;
         }
 
         AnnotatedMibFileGenerator generator = new AnnotatedMibFileGenerator(
-                new File(AnnotatedMibFileGenerator.class.getResource("/main//resources/mib/template").toURI()));
-        generator.processIntoMibDefinition(System.out, inpClasses);
+                new File(AnnotatedMibFileGenerator.class.getResource("/resources/mib/template").toURI()));
+        generator.processIntoMibDefinition(System.out, objectIdentifiers);
     }
 
     public class ObjectDefinition {
@@ -283,9 +289,10 @@ public class AnnotatedMibFileGenerator {
         private String description;
         private String oid;
         private String comment;
+        private String objectIdentifier;
 
         public ObjectDefinition(String name, String type, String access, String status, String desc, String oid,
-                                String comment){
+                                String comment, String objectIdentifier) {
             this.name = name;
             this.type = type;
             this.access = access;
@@ -293,6 +300,7 @@ public class AnnotatedMibFileGenerator {
             this.description = desc;
             this.oid = oid;
             this.comment = comment;
+            this.objectIdentifier = objectIdentifier;
         }
         public String getName() {
             return name;
@@ -315,6 +323,41 @@ public class AnnotatedMibFileGenerator {
         public String getComment() {
             return comment;
         }
+        public String getObjectIdentifier() {
+            return objectIdentifier;
+        }
     }
 
+    public static class ObjectIdentifier {
+        private Class<?> aClass;
+        private String name;
+        private String oid;
+        private String moduleName;
+
+        public ObjectIdentifier(String objectIdentifierName, String className, String oid) throws ClassNotFoundException {
+            this.aClass = Class.forName(className);
+            this.name = objectIdentifierName;
+            this.oid = oid;
+        }
+
+        public Class<?> getObjectIdentifierClass() {
+            return aClass;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getOid() {
+            return oid;
+        }
+
+        public String getModuleName(){
+            return moduleName;
+        }
+
+        public void setModuleName(String moduleName) {
+            this.moduleName = moduleName;
+        }
+    }
 }

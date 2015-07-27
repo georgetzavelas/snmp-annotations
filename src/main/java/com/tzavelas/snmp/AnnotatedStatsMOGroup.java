@@ -106,6 +106,7 @@ public class AnnotatedStatsMOGroup implements MOGroup {
             .put("integer32", Integer32.class )
             .put("counter64", Counter64.class)
             .put("octetstring", OctetString.class)
+            .put("gauge32", Gauge32.class)
             .put(Byte.class.getName(), Integer32.class)     //class type
             .put(Short.class.getName(), Integer32.class)
             .put(Integer.class.getName(), Integer32.class)
@@ -149,6 +150,8 @@ public class AnnotatedStatsMOGroup implements MOGroup {
             }
             _logger.info("Autodetected oid type: " + ret + ", from type: " + mibClass.getName());
         } else if (OBJECT_CLASS_TO_MIB_CLASS_MAPPING.containsKey(typeNorm)) {
+            ret = OBJECT_CLASS_TO_MIB_CLASS_MAPPING.get(typeNorm);
+        } else {
             ret = OBJECT_CLASS_TO_MIB_CLASS_MAPPING.get(mibClass.getName());
         }
         return ret;
@@ -182,7 +185,7 @@ public class AnnotatedStatsMOGroup implements MOGroup {
      * @throws IllegalAccessException
      */
     private int processObjectFields(Object annotatedMibObject, String oidPrefix, Object[] members,
-            MemberSubAccessor accessor) throws InstantiationException, IllegalAccessException {
+                                    MemberSubAccessor accessor) throws InstantiationException, IllegalAccessException {
         int processCount = 0;
 
         for (Object member: members) {
@@ -210,8 +213,8 @@ public class AnnotatedStatsMOGroup implements MOGroup {
             }
 
             OID oidObj = new OID(oidPrefix + mibAnnotation.oid() + oidSuffix);
-            _managedObjects.add(new MOScalar(oidObj, MOAccessImpl.ACCESS_READ_ONLY, var));
-            _logger.info("" + oidObj + ", varType: " + ((VariantVariable)var).getVariable().getClass().getName());
+            _managedObjects.add(new MOScalar<>(oidObj, MOAccessImpl.ACCESS_READ_ONLY, var));
+            _logger.info("OID:" + oidObj + ", varType: " + ((VariantVariable)var).getVariable().getClass().getName());
             processCount +=1;
         }
         return processCount;
